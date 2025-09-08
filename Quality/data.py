@@ -19,7 +19,9 @@ from torch_geometric.nn import GCNConv, global_mean_pool
 from sklearn.svm import SVR
 from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, spearmanr, kendalltau
-from utils import compute_overlap
+from Quality.utils import compute_overlap
+
+
 
 class GraphImageDataset(Dataset):
     def __init__(self, image_folder, csv_path, patch_size=128,

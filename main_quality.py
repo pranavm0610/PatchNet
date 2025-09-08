@@ -1,8 +1,8 @@
 import argparse
 from torch_geometric.loader import DataLoader
-from data import GraphImageDataset  
+from Quality.data import GraphImageDataset  
 from torch.utils.data import random_split
-from model import DualGraphRegressor
+from Quality.model import DualGraphRegressor
 
 import os
 import cv2
