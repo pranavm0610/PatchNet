@@ -28,7 +28,7 @@ from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
 from utils import set_seed
-from trainer import train
+from trainer import train, test
 def main():
     
 
@@ -78,6 +78,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     train(model, train_loader, val_loader, optimizer, args.patience, args.model_path)
+    test(model, train_loader, val_loader, test_loader   )
 
 
 if __name__ == "__main__":
