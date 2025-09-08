@@ -77,7 +77,7 @@ def main():
     model = DualGraphRegressor().cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    train(model, train_loader, val_loader, optimizer, parser.patience, parser.add_argument)
+    train(model, train_loader, val_loader, optimizer, args.patience, args.add_argument)
 
 
 if __name__ == "__main__":
