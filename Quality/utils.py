@@ -32,7 +32,13 @@ def compute_overlap(box1, box2):
     box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
     return inter_area / min(box1_area, box2_area)
 
-
+def set_seed(seed=42):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 
 

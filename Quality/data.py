@@ -25,7 +25,7 @@ class GraphImageDataset(Dataset):
     def __init__(self, image_folder, csv_path, patch_size=128,
                  num_patches=30, overlap=0.3, hessian_thresh=400):
         self.image_folder = image_folder
-        self.df = pd.read_excel(csv_path)
+        self.df = pd.read_csv(csv_path)
         self.patch_size = patch_size
         self.half_patch = patch_size // 2
 

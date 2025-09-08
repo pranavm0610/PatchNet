@@ -1,8 +1,40 @@
 import argparse
-from torch.utils.data import DataLoader
+from torch_geometric.loader import DataLoader
 from data import GraphImageDataset  
+from torch.utils.data import random_split
+from model import DualGraphRegressor
 
+import os
+import cv2
+import torch
+import random
+import numpy as np
+import pandas as pd
+import networkx as nx
+import torchvision.models as models
+import torchvision.transforms as transforms
+
+from torch.utils.data import Dataset, random_split
+from torch_geometric.data import Data
+from torch_geometric.utils import from_networkx
+from torch_geometric.loader import DataLoader
+
+from torch import nn
+import torch.nn.functional as F
+from torch_geometric.nn import GCNConv, global_mean_pool
+
+from sklearn.svm import SVR
+from sklearn.metrics import mean_squared_error
+from scipy.stats import pearsonr, spearmanr, kendalltau
+
+from utils import set_seed
+from trainer import train
 def main():
+    
+
+    set_seed(42)
+    generator = torch.Generator().manual_seed(42)
+
     parser = argparse.ArgumentParser()
 
     # Required arguments
@@ -14,6 +46,11 @@ def main():
     parser.add_argument("--num_patches", type=int, default=30, help="Max number of SURF patches")
     parser.add_argument("--overlap", type=float, default=0.3, help="Max allowed overlap ratio")
     parser.add_argument("--hessian_thresh", type=int, default=400, help="SURF hessian threshold")
+
+    parser.add_argument("--patience", type=int, default=20, help="patience for early stopping")
+    parser.add_argument("--model_path", type=str, default="best_model_quality", help="path for saving best model")
+    
+    parser.add_argument("--learning_rate", type=float, default=1e-3, help="path for saving best model")
 
     args = parser.parse_args()
 
@@ -27,12 +64,21 @@ def main():
         hessian_thresh=args.hessian_thresh
     )
 
-    # DataLoader example
-    loader = DataLoader(dataset, batch_size=1, shuffle=True)
-    for grid_graph, surf_graph in loader:
-        print("Grid graph nodes:", grid_graph.x.shape)
-        print("Surf graph nodes:", surf_graph.x.shape)
-        break
+    total_size = len(dataset)
+    train_size = int(0.80 * total_size)
+    val_size = int(0.10 * total_size)
+    test_size = total_size - train_size - val_size
+    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size], generator=generator)
+
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
+
+    model = DualGraphRegressor().cuda()
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+
+    train(model, train_loader, val_loader, optimizer, parser.patience, parser.add_argument)
+
 
 if __name__ == "__main__":
     main()

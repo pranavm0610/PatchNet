@@ -40,7 +40,10 @@ def evaluate(test_scores, test_labels):
     print(f"  KRCC: {krcc:.4f}")
 
 
-def train(model, train_loader, val_loader, optimizer, patience, best_model_path):    
+def train(model, train_loader, val_loader, optimizer, patience, best_model_path):
+    best_plcc = -float('inf')
+    counter = 0
+        
     for epoch in range(1, 101):
         model.train()
         total_loss = 0
