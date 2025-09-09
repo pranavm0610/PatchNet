@@ -75,7 +75,18 @@ class GraphImageDataset(Dataset):
         self.alignmos = self.scaler.fit_transform(self.df[["Consistency"]])
         self.prompts = self.df["Prompt"].values
 
-
+    def extract_features(self, patches):
+        features = []
+        for patch in patches:
+            pil_img = Image.fromarray(cv2.cvtColor(patch, cv2.COLOR_BGR2RGB))
+            img_tensor = self.clip_preprocess(pil_img).unsqueeze(0).to("cuda")
+            with torch.no_grad():
+                feat = self.clip_model.encode_image(img_tensor).squeeze(0)  # CUDA
+                feat = self.proj(feat.float())  # CUDA
+                feat = feat.cpu()       # Move to CPU
+            features.append(feat)
+        return features
+    
     def extract_surf_graph(self, img_rgb):
         img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
         surf = cv2.xfeatures2d.SURF_create(hessianThreshold=self.hessian_thresh)
@@ -108,6 +119,28 @@ class GraphImageDataset(Dataset):
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 if abs(nodes[i][0] - nodes[j][0]) < self.patch_size and abs(nodes[i][1] - nodes[j][1]) < self.patch_size:
+                    G.add_edge(i, j)
+
+        data = from_networkx(G)
+        data.x = torch.stack([G.nodes[i]['x'] for i in G.nodes])
+        return data
+    def extract_grid_graph(self, img_rgb):
+        h, w = img_rgb.shape[:2]
+        grid_size = self.patch_size
+        patches, coords = [], []
+        for y in range(0, h - grid_size + 1, grid_size):
+            for x in range(0, w - grid_size + 1, grid_size):
+                patch = img_rgb[y:y+grid_size, x:x+grid_size]
+                patches.append(patch)
+                coords.append((x + grid_size // 2, y + grid_size // 2))
+
+        node_features = self.extract_features(patches)
+        G = nx.Graph()
+        for i, feat in enumerate(node_features):
+            G.add_node(i, x=feat)
+        for i in range(len(coords)):
+            for j in range(i+1, len(coords)):
+                if abs(coords[i][0] - coords[j][0]) <= grid_size and abs(coords[i][1] - coords[j][1]) <= grid_size:
                     G.add_edge(i, j)
 
         data = from_networkx(G)
