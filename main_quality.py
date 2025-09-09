@@ -74,11 +74,16 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-    model = DualGraphRegressor().cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    if args.mode=="train":
+        model = DualGraphRegressor().cuda()
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    train(model, train_loader, val_loader, optimizer, args.patience, args.model_path)
-    test(model, train_loader, val_loader, test_loader   )
+        train(model, train_loader, val_loader, optimizer, args.patience, args.model_path)
+    elif args.mode=="test":
+        model=DualGraphRegressor().cuda()
+        checkpoint = torch.load(args.model_path)
+        model.load_state_dict(checkpoint["model_state"])
+        test(model, train_loader, val_loader, test_loader   )
 
 
 if __name__ == "__main__":
