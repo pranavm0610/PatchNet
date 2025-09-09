@@ -94,7 +94,7 @@ def train(model, text_proj, train_loader, val_loader, optimizer, patience, best_
 
         if plcc_val > best_plcc:
             best_plcc = plcc_val
-            torch.save(model.state_dict(), best_model_path)
+            torch.save({"model_state":model.state_dict(),"text_proj_state": text_proj.state_dict()}, best_model_path)
             counter = 0
             print("New best model saved.")
         else:

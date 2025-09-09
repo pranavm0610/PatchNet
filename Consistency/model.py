@@ -33,8 +33,17 @@ class DualGraphRegressor(nn.Module):
         return x  # Feature for SVR
     
 
-text_proj = nn.Sequential(
-    nn.Linear(1024, 512), nn.GELU(),
-    nn.Linear(512, 256),nn.GELU(),
-    nn.Linear(256,256)
-).cuda()
+class TextProj(nn.Module):
+    def __init__(self, input_dim=1024, hidden_dims=[512, 256], output_dim=256):
+        super().__init__()
+        layers = []
+        prev_dim = input_dim
+        for h in hidden_dims:
+            layers.append(nn.Linear(prev_dim, h))
+            layers.append(nn.GELU())
+            prev_dim = h
+        layers.append(nn.Linear(prev_dim, output_dim))  # final projection
+        self.proj = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return self.proj(x)

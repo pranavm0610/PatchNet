@@ -2,7 +2,7 @@ import argparse
 from torch_geometric.loader import DataLoader
 from Consistency.data import GraphImageDataset  
 from torch.utils.data import random_split
-from Consistency.model import DualGraphRegressor, text_proj
+from Consistency.model import DualGraphRegressor, TextProj
 
 import os
 import cv2
@@ -52,6 +52,8 @@ def main():
     
     parser.add_argument("--learning_rate", type=float, default=1e-3, help="path for saving best model")
 
+    parser.add_argument("--mode", type=str, choices=["train", "test"], required=True, help="Run in train or test mode")
+
     args = parser.parse_args()
 
     # Create dataset
@@ -74,15 +76,24 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-    model = DualGraphRegressor().cuda()
-    optimizer = torch.optim.Adam([
-    {"params": model.parameters(), "lr": 1e-4},
-    {"params": text_proj.parameters(), "lr": 1e-4},
-    {"params": dataset.proj.parameters(), "lr": 1e-4}
-])
+    if args.mode=="train":
+        model = DualGraphRegressor().cuda()
+        text_proj=TextProj().cuda()
+        optimizer = torch.optim.Adam([
+        {"params": model.parameters(), "lr": 1e-4},
+        {"params": text_proj.parameters(), "lr": 1e-4},
+        {"params": dataset.proj.parameters(), "lr": 1e-4}
+        ])
 
-    train(model,text_proj, train_loader, val_loader, optimizer, args.patience, args.model_path)
-    test(model,text_proj,train_loader, val_loader, test_loader)
+        train(model,text_proj, train_loader, val_loader, optimizer, args.patience, args.model_path)
+    elif args.mode=="test":
+        model=DualGraphRegressor().cuda()
+        text_proj=TextProj().cuda()
+        checkpoint = torch.load(args.model_path)
+        model.load_state_dict(checkpoint["model_state"])
+        text_proj.load_state_dict(checkpoint["text_proj_state"])
+    
+        test(model,text_proj,train_loader, val_loader, test_loader)
 
 
 if __name__ == "__main__":
