@@ -114,6 +114,13 @@ class GraphImageDataset(Dataset):
         data.x = torch.stack([G.nodes[i]['x'] for i in G.nodes])
         return data
 
+    def extract_text_features(self, text):
+        tokens = clip.tokenize([text]).to("cuda")
+        with torch.no_grad():
+            text_feat = self.clip_model.encode_text(tokens).squeeze(0).cpu()
+        return text_feat
+
+
     def __len__(self):
         return len(self.image_paths)
 
