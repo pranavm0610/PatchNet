@@ -1,8 +1,8 @@
 import argparse
 from torch_geometric.loader import DataLoader
-from Quality.data import GraphImageDataset  
+from Consistency.data import GraphImageDataset  
 from torch.utils.data import random_split
-from Quality.model import DualGraphRegressor
+from Consistency.model import DualGraphRegressor, text_proj
 
 import os
 import cv2
@@ -27,8 +27,8 @@ from sklearn.svm import SVR
 from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
-from Quality.utils import set_seed
-from Quality.trainer import train, test
+from Consistency.utils import set_seed
+from Consistency.trainer import train, test
 def main():
     
 
@@ -75,10 +75,14 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
     model = DualGraphRegressor().cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.Adam([
+    {"params": model.parameters(), "lr": 1e-4},
+    {"params": text_proj.parameters(), "lr": 1e-4},
+    {"params": dataset.proj.parameters(), "lr": 1e-4}
+])
 
-    train(model, train_loader, val_loader, optimizer, args.patience, args.model_path)
-    test(model, train_loader, val_loader, test_loader   )
+    train(model,text_proj, train_loader, val_loader, optimizer, args.patience, args.model_path)
+    test(model,text_proj,train_loader, val_loader, test_loader)
 
 
 if __name__ == "__main__":
