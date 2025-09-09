@@ -113,3 +113,24 @@ class GraphImageDataset(Dataset):
         data = from_networkx(G)
         data.x = torch.stack([G.nodes[i]['x'] for i in G.nodes])
         return data
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img = cv2.imread(self.image_paths[idx])
+        mos = self.mos_scores[idx]
+        prompt = self.prompts[idx]
+
+        if img is None:
+            return self.__getitem__((idx + 1) % len(self))
+
+        grid_graph = self.extract_grid_graph(img)
+        surf_graph = self.extract_surf_graph(img)
+        text_feat=self.extract_text_features(prompt)
+
+        if grid_graph is None or surf_graph is None:
+            return self.__getitem__((idx + 1) % len(self))
+
+        grid_graph.y = surf_graph.y = torch.tensor([mos], dtype=torch.float)
+        return grid_graph, surf_graph, text_feat.squeeze(0), float(self.alignmos[idx][0])

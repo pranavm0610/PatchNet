@@ -30,7 +30,6 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 from Consistency.utils import set_seed
 from Consistency.trainer import train, test
 def main():
-    
 
     set_seed(42)
     generator = torch.Generator().manual_seed(42)
