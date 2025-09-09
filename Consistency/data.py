@@ -36,7 +36,7 @@ class GraphImageDataset(Dataset):
                  hessian_thresh=400):
         
         self.image_folder = image_folder
-        self.df = pd.read_excel(csv_path)
+        self.df = pd.read_csv(csv_path)
 
         # configs
         self.patch_size = patch_size
