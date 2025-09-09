@@ -28,14 +28,14 @@ Steps (summary):
 # Prepare Data
 
 To run the program, organize your dataset in the following format:
-
+```
 dataset/
 ├── data.csv
 ├── Images/
 │ ├──Image1
 │ ├──Image2
 │ ├──Image3
-
+```
 - The **CSV file (`data.csv`)** should contain at all the following columns:
   - **Image** → name of the image file (must match the files in `Images/`)
   - **Quality** → quality score for the image
