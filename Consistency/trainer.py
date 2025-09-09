@@ -25,7 +25,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import pearsonr, spearmanr, kendalltau
 import numpy as np
 
-from utils import logistic_func, pearson_loss
+from Consistency.utils import logistic_func, pearson_loss
 
 
 
