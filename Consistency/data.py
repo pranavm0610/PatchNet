@@ -26,7 +26,7 @@ from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr, spearmanr, kendalltau
 
 
-from utils import compute_overlap
+from Consistency.utils import compute_overlap
 
 class GraphImageDataset(Dataset):
     def __init__(self, image_folder, csv_path,
